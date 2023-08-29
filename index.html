@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<meta name="robots" content="noindex">
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Voting Page</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+  </head>
+  <body>
+    <h1>Who is a better web3 developer, Kush or Eashan?</h1>
+    <div>
+      <h2>Here is what other people are saying:</h2>
+      <table>
+        <tr>
+          <th></th>
+          <th>Kush</th>
+          <th>Eashan</th>
+        </tr>
+        <tr>
+          <th>Number of votes</th>
+          <td id='kushVotes'>0</td>
+          <td id='eashanVotes'>0</td>
+        </tr>
+      </table>
+      <p id='numVotesP'>Total number of votes: 0</p>
+    </div>
+    <div id='selectionDiv'>
+      <button onclick='castVote(0)'>Kush</button>
+      <button onclick='castVote(1)'>Eashan</button>
+    </div>
+    <div id='winnerDiv'>
+      <button onclick='announceWinner()'>Announce winner</button>
+      <p id='winnerP'>Winner is: Neither</p>
+    </div>
+
+    <script id="jsbin-javascript">
+
+      //var Web3 = require('web3');
+
+      if (typeof web3 != 'undefined') {
+        web3 = new Web3(web3.currentProvider);
+      } else {
+        web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:'))
+      }
+
+      web3.th.defaultAccount = web3.eth.accounts[0];
+      var voting = web3.eth.contract([
+        [
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "candidates",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "name",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "numberOfVotes",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "candidateIndex",
+        "type": "uint256"
+      }
+    ],
+    "name": "castVote",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "candidateIndex",
+        "type": "uint256"
+      }
+    ],
+    "name": "getNumberOfVotes",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getWinner",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "winner",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "votes",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "voted",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "vote",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
+        ])
+
+      var votingContract = voting.at('0xd9145CCE52D386f254917e481eB44e9943F39138');
+
+      console.log(votingContract);
+
+
+
+
+      var kushVotesText = document.getElementById('kushVotes');
+      var eashanVotesText = document.getElementById('eashanVotes');
+      var totalVotesP = document.getElementById('numVotesP');
+      var winnerP = document.getElementById('winnerP');
+      var selectionDiv = document.getElementById('selectionDiv');
+
+
+      displayVotes();
+
+      // var totalVotes = 0;
+      // var kushVotes = 0;
+      // var eashanVotes = 0;
+      // var voted = false;
+
+      function castVote(candidateIndex) {
+        try {
+          votingContract.castVote(candidateIndex);
+
+        } catch (error) {
+          alert('You have already voted!');
+        }
+        
+        displayVotes();
+
+
+
+        // if (voted) {
+        //   alert('You have already voted!')
+        //   return;
+        // }
+        // voted = true;
+        // if (candidateIndex === 0) {
+        //   kushVotes += 1;
+        //   kushVotesText.innerHTML = kushVotes.toString();
+        // } else {
+        //   eashanVotes += 1;
+        //   eashanVotesText.innerHTML = eashanVotes.toString();
+        // }
+        // totalVotes += 1;
+        // totalVotesP.innerHTML = 'Total number of votes: ' + totalVotes.toString();
+      }
+
+      function displayVotes() {
+        var kushVotes = votingContract.getNumberOfVotes(0);
+        var eashanVotes = votingContract.getNumberOfVotes(1);
+        var totalVotes = parseInt(kushVotes) + parseInt(eashanVotes);
+
+        kushVotesText.innerHTML = kushVotes.toString();
+        eashanVotes.innerHTML = kushVotes.toString();
+        totalVotesP.innerHTML = 'Total number of votes: ' + totalVotes.toString();
+      }
+
+      function announceWinner() {
+        // var winner = ''
+        // if (kushVotes > eashanVotes) {
+        //   winner = 'Kush'
+        // } else {
+        //   winner = 'Eashan'
+        // }
+        winner = web3.toAscii(votingContract.getWinner());
+
+        winnerP.innerHTML = 'Winner is ' + winner;
+        winnerP.style.display = 'block';
+        for (var i = 0; i < selectionDiv.childNodes.length; i++) {
+          selectionDiv.childNodes[i].disabled = true;
+        }
+      }
+    </script>
+  </body>
+</html>
